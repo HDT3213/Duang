@@ -5,13 +5,23 @@ from scene import *
 from view import *
 
 class MainWindow(QtGui.QMainWindow):
+	interval =  40
 	def __init__(self, *args, **kwargs):
 		QtGui.QMainWindow.__init__(self, *args, **kwargs)
-		self.scene = BricksScene(self)
-		self.view = BricksView(self)
+		self.scene = QtGui.QGraphicsScene(self)
+		self.resize(width + 20, self.scene.height + 20)
+		self.view = BricksView(self.scene, self)
 		self.view.setRenderHint(QtGui.QPainter.Antialiasing)
 		self.view.setScene(self.scene)
 		self.view.setFocusPolicy(QtCore.Qt.NoFocus)
+		self.view.resize(self.scene.width, self.scene.height)
+		self.connect(self.view, QtCore.SIGNAL('keyRelease(event)'),self.userBrick.keyNextPos)
+		self.connect(self.scene, QtCore.SIGNAL('gameOver()'),self.endGame)
+		self.run = False
+		self.createBricks()
+		self.resetBricks()
+		self.view.show()
+		self.startTimer(interval)
 
 	# def populate(self):
 	# 	n = 4
@@ -19,24 +29,38 @@ class MainWindow(QtGui.QMainWindow):
 	# 	for i in range(n):
 	# 		self.bricks.append(Brick(self))
 
-	def populate(self):
-		brick1 = Brick()
-		self.scene.addItem(brick1)
-		brick2 = Brick()
-		self.scene.addItem(brick2)
-		brick3 = Brick()
-		self.scene.addItem(brick3)
-		brick4 = Brick()
-		self.scene.addItem(brick4)
+	def createBricks(self):
+		self.bricks = list()
+		for i in range(4):
+			self.bricks.append(Brick())
+			self.scene.addItem(self.bricks[i])
+		
 		self.userBrick = UserBrick()
-		self.scene.show()
+		self.scene.addItem(userbrick)
+		
 
-	interval =  40
+	def resetBricks(self):
+		self.bricks[0].setRect(20, 20, 20, 20)
+		self.bricks[1].setRect(width - 20, 20, 20, 20)
+		self.bricks[2].setRect(20, height - 20, 20, 20)
+		self.bricks[3].setRect(width - 20, height - 20, 20, 20)
+		self.userBrick.setRect(width / 2, height / 2, 20, 20)
+
 	def startGame(self):
-		self.startTimer(interval)
+		self.resetBricks()
+		self.run = True
+
+	def endGame(self):
+		self.run = False
+
 
 	def timerEvent(self, event):
-		pass
+		if not self.run:
+			return
+		for item in self.scene:
+			if not isinstance(item, Brick):
+				continue
+			item.nextPos()
 
 
 

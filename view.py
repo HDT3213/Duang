@@ -8,5 +8,5 @@ class  BricksView(QtGui.QGraphicsView):
 		super( BricksView, self).__init__(parent)
 
 	def keyEvent(self, event):
-		self.emit(QtCore.SIGNAL('KeyRelease(event)'))
+		self.emit(QtCore.SIGNAL('KeyRelease(event)'), event)
 		

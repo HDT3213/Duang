@@ -1,6 +1,8 @@
 from PyQt4 import QtCore, QtGui
 import sys
 
+colors = [QtCore.Qt.black, QtCore.Qt.red, QtCore.Qt.yeloow, QtCore.Qt.blue]
+
 class Brick(QtGui.QGraphicsItem):
 	def __init__(self, parent = None):
 		super(Brick, self).__init__(parent)
@@ -37,6 +39,15 @@ class Brick(QtGui.QGraphicsItem):
 	def boundingRect(self):
 		return self.rect
 
+	def paint(painter):
+		global colors
+		color = colors[self.brickType]
+		brush = QtGui.QBrush()
+		brush.setStyle(QtCore.Qt.SolidPattern)
+		brush.setColor(color)
+		painter.setBrush(brush)
+		painter.drawRect(self.rect)
+
 	dx = 20
 	dy = 20
 	def nextPos(self):
@@ -64,9 +75,17 @@ class BricksScene(QtGui.QGraphicsScene):
 	def __init__(self, parent = None):
 		super(BricksScene, self).__init__()
 
-		def event(self, event):
+	height = 300
+	width = 400
+
+	def event(self, event):
 		items = self.items()
 		for itemA in items:
+			# border event
+			border = hitBorder(itemA)
+			if border != 0:
+				handleBorder(itemA, border)
+			# collision event
 			for itemB in items:
 				if itemA == itemB:
 					continue
@@ -78,16 +97,64 @@ class BricksScene(QtGui.QGraphicsScene):
 
 # brick type: black:user red:rebound, yellow:attach, blue:through
 def handleCollision(posBrick, negBrick):  # distribute collision event to handler for each type, set forward for posBrick
+	if posBrick.brickType == 0: #user
+		QtCore.QObject.emit(QtCore.SIGNAL('gameOver()'))
+	elif posBrick.brickType == 1: #rebound
+		reboundCollision(posBrick, negBrick)
+	elif posBrick.brickType == 2: #attach
+		attachCollision(posBrick, negBrick)
+	elif posBrick.brickType == 3: #through
+		throughCollision(posBrick, negBrick)
+
+def reboundCollision(posBrick, negBrick): 
 	pass
 
-def rebound(posBrick, negBrick): 
+def attachCollision(posBrick, negBrick): 
+	posBrick.setForward(negBrick.forwardX, negBrick.forwardY)
+
+def throughCollision(posBrick, negBrick):
 	pass
 
-def attach(posBrick, negBrick): 
-	pass
+def hitBorder(brick):
+	if brick.x <= 0:
+		return 1 #left
+	elif brick.x + brick.width >= BricksScene.width:
+		return 2 #right
+	elif brick.y <= 0:
+		return 3 #up
+	elif brick.y + brick.height < BricksScene.height:
+		return 4 #down
+	else:
+		return 0 
 
-def through(posBrick, negBrick):
-	pass
+def handleBorder(brick, border):
+	if brick.brickType == 0: #user
+		QtCore.QObject.emit(QtCore.SIGNAL('gameOver()'))
+	elif brick.brickType == 1: #rebound
+		reboundBorder(brick, border)
+	elif brick.brickType == 2: #attach
+		attachBorder(brick, border)
+	elif brick.brickType == 3: #through
+		throughCollision(brick, border)
+
+def reboundBorder(brick, border):
+	if border == 1 or border == 2:
+		brick.setForward(- brick.forwardX, brick.forwardY)
+	if border == 3 or border == 4:
+		brick.setForward(brick.forwardX,- brick.forwardY)
+
+def attachBorder(brick, border):
+	reboundBorder(brick, border)
+
+def throughBorder(brick, border):
+	if border == 1:
+		brick.x = BricksScene.width
+	elif border == 2:
+		brick.x = 0
+	elif border == 3:
+		brick.y = BricksScene.height
+	elif border == 4:
+		brick.y = 0
 	
 
 	
