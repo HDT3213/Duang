@@ -107,7 +107,10 @@ def handleCollision(posBrick, negBrick):  # distribute collision event to handle
 		throughCollision(posBrick, negBrick)
 
 def reboundCollision(posBrick, negBrick): 
-	pass
+	if posBrick.x + posBrick.width >= negBrick.x or posBrick.x <= negBrick.x + negBrick.width:
+		posBrick.setForward(-posBrick.forwardX, posBrick.forwardY)
+	if posBrick.y + posBrick.height >= negBrick.y or posBrick.y <= negBrick.y + negBrick.height:
+		posBrick.setForward(posBrick.forwardX, -posBrick.forwardY)
 
 def attachCollision(posBrick, negBrick): 
 	posBrick.setForward(negBrick.forwardX, negBrick.forwardY)
